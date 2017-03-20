@@ -50,7 +50,7 @@ html(lang="en")
 					.text(function(row) {
 						switch (row.column) {
 						case 'Timestamp':
-							return new Date(row.value).toDateString();
+							return new Date(row.value).toString();
 						case 'Query':
 						case 'Body':
 							return JSON.stringify(row.value, null, '  ');
