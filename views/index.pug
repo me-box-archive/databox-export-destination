@@ -1,0 +1,67 @@
+doctype html
+html(lang="en")
+	head
+		meta(charset='utf-8')
+		meta(name='viewport', content='width=device-width, initial-scale=1')
+		title Databox Export Destination
+		script(src='https://d3js.org/d3.v4.min.js')
+		script(src='/socket.io/socket.io.js')
+		style.
+			table {
+				border-collapse: collapse;
+			}
+			td, th {
+				border: 1px solid black;
+				padding: 1px 4px;
+			}
+			.query, .body {
+				font-family: monospace;
+				white-space: pre;
+			}
+	body
+		h1 Databox Export Destination
+
+		script.
+			let cols = [ 'Timestamp', 'Method', 'Path', 'Query', 'Body' ];
+			let data = [];
+			let table = d3.select('body').append('table');
+			let thead = table.append('thead');
+			let tbody = table.append('tbody');
+
+			thead.append('tr').selectAll('th').data(cols)
+				.enter()
+					.append('th').text((col) => col);
+
+			function updateTable() {
+				let rows = tbody.selectAll('tr').data(data)
+					.enter()
+						.insert('tr', ':first-child');
+
+				let cells = rows.selectAll('td').data((row) => {
+					return cols.map((col, id) => {
+						return {
+							column: col,
+							value: row[id]
+						};
+					});
+				}).enter()
+					.append('td')
+					.attr('class', (row) => row.column.toLowerCase())
+					.text(function(row) {
+						switch (row.column) {
+						case 'Timestamp':
+							return new Date(row.value).toString();
+						case 'Query':
+						case 'Body':
+							return JSON.stringify(row.value, null, '  ');
+						default:
+							return row.value;
+						}
+					});
+			};
+
+			var socket = io();
+			socket.on('request', function() {
+				data.push(arguments);
+				updateTable();
+			});
